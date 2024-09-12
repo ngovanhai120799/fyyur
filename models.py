@@ -45,11 +45,11 @@ class Artist(db.Model):
     __tablename__ = 'artists'
     id = db.Column(db.String(), primary_key=True)
     name = db.Column(db.String(), nullable=False)
-    city = db.Column(db.String(120))
-    state = db.Column(db.String(120))
-    phone = db.Column(db.String(120))
-    image_link = db.Column(db.String(500))
-    facebook_link = db.Column(db.String(120))
+    city = db.Column(db.String())
+    state = db.Column(db.String())
+    phone = db.Column(db.String())
+    image_link = db.Column(db.String())
+    facebook_link = db.Column(db.String())
     genres = db.relationship("Genre", secondary=genre_of_artist, backref=db.backref('artists'))
 
 
