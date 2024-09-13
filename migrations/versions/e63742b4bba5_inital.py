@@ -1,8 +1,8 @@
-"""Initial migration.
+"""inital
 
-Revision ID: 69d458f3f3f3
+Revision ID: e63742b4bba5
 Revises: 
-Create Date: 2024-09-12 23:10:38.796169
+Create Date: 2024-09-13 15:15:32.985578
 
 """
 from alembic import op
@@ -10,7 +10,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision = '69d458f3f3f3'
+revision = 'e63742b4bba5'
 down_revision = None
 branch_labels = None
 depends_on = None
@@ -21,11 +21,11 @@ def upgrade():
     op.create_table('artists',
     sa.Column('id', sa.String(), nullable=False),
     sa.Column('name', sa.String(), nullable=False),
-    sa.Column('city', sa.String(length=120), nullable=True),
-    sa.Column('state', sa.String(length=120), nullable=True),
-    sa.Column('phone', sa.String(length=120), nullable=True),
-    sa.Column('image_link', sa.String(length=500), nullable=True),
-    sa.Column('facebook_link', sa.String(length=120), nullable=True),
+    sa.Column('city', sa.String(), nullable=True),
+    sa.Column('state', sa.String(), nullable=True),
+    sa.Column('phone', sa.String(), nullable=True),
+    sa.Column('image_link', sa.String(), nullable=True),
+    sa.Column('facebook_link', sa.String(), nullable=True),
     sa.PrimaryKeyConstraint('id')
     )
     op.create_table('genres',
