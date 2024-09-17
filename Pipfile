@@ -9,7 +9,8 @@ flask = "*"
 flask-sqlalchemy = "*"
 flask-migrate = "*"
 python-dotenv = "*"
-ulid = "*"
+ulid = "==1.1"
+flask_wtf = "*"
 
 [requires]
 python_version = "3.12"

@@ -1,16 +1,16 @@
-"""Initial models
+"""initial models
 
-Revision ID: cb2f708f3db7
+Revision ID: a33424607277
 Revises: 
-Create Date: 2024-09-16 10:35:34.840515
+Create Date: 2024-09-17 21:07:06.951147
 
 """
 from alembic import op
 import sqlalchemy as sa
-
+from sqlalchemy.dialects import postgresql
 
 # revision identifiers, used by Alembic.
-revision = 'cb2f708f3db7'
+revision = 'a33424607277'
 down_revision = None
 branch_labels = None
 depends_on = None
@@ -21,18 +21,21 @@ def upgrade():
     op.create_table('artists',
     sa.Column('id', sa.String(), nullable=False),
     sa.Column('name', sa.String(), nullable=False),
-    sa.Column('genres', sa.ARRAY(sa.String()), nullable=True),
     sa.Column('city', sa.String(), nullable=True),
     sa.Column('state', sa.String(), nullable=True),
     sa.Column('phone', sa.String(), nullable=True),
     sa.Column('image_link', sa.String(), nullable=True),
     sa.Column('facebook_link', sa.String(), nullable=True),
+    sa.Column('genres', postgresql.ARRAY(sa.String()), server_default='{}', nullable=True),
+    sa.Column('website', sa.String(), nullable=True),
+    sa.Column('seeking_venue', sa.Boolean(), nullable=True),
+    sa.Column('seeking_description', sa.Boolean(), nullable=True),
     sa.PrimaryKeyConstraint('id')
     )
     op.create_table('venues',
     sa.Column('id', sa.String(), nullable=False),
     sa.Column('name', sa.String(), nullable=False),
-    sa.Column('genres', sa.ARRAY(sa.String()), nullable=True),
+    sa.Column('genres', postgresql.ARRAY(sa.String()), server_default='{}', nullable=True),
     sa.Column('city', sa.String(), nullable=True),
     sa.Column('state', sa.String(), nullable=True),
     sa.Column('phone', sa.String(), nullable=True),

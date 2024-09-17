@@ -1,6 +1,8 @@
 from flask_migrate import Migrate
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import inspect
+from sqlalchemy.dialects.postgresql import ARRAY
+from sqlalchemy.ext.mutable import MutableList
 
 db = SQLAlchemy()
 migrate = Migrate()
@@ -10,7 +12,7 @@ class Venue(db.Model):
     __tablename__ = 'venues'
     id = db.Column(db.String(), primary_key=True)
     name = db.Column(db.String(), nullable=False)
-    genres = db.Column(db.ARRAY(db.String()))
+    genres = db.Column(MutableList.as_mutable(ARRAY(db.String())),server_default = "{}")
     city = db.Column(db.String())
     state = db.Column(db.String())
     phone = db.Column(db.String())
@@ -28,12 +30,15 @@ class Artist(db.Model):
     __tablename__ = 'artists'
     id = db.Column(db.String(), primary_key=True)
     name = db.Column(db.String(), nullable=False)
-    genres = db.Column(db.ARRAY(db.String()))
     city = db.Column(db.String())
     state = db.Column(db.String())
     phone = db.Column(db.String())
     image_link = db.Column(db.String())
     facebook_link = db.Column(db.String())
+    genres = db.Column(MutableList.as_mutable(ARRAY(db.String())),server_default = "{}")
+    website = db.Column(db.String())
+    seeking_venue = db.Column(db.Boolean)
+    seeking_description = db.Column(db.String())
 
     def toDict(self):
         return {c.key: getattr(self, c.key) for c in inspect(self).mapper.column_attrs}
