@@ -62,7 +62,7 @@ def show_venue(venue_id):
     return render_template('pages/show_venue.html', venue=format_venue)
 
 
-@venue_route.route('/venues/<venue_id>/edit', methods=['PUT'])
+@venue_route.route('/venues/<venue_id>/edit', methods=['POST'])
 def update_venue_by_id(venue_id):
     try:
         update_venue = Venue.query.filter(Venue.id == venue_id)[0]
@@ -78,7 +78,6 @@ def update_venue_by_id(venue_id):
         update_venue.seeking_description = request.form.get('seeking_description')
         update_venue.image_link = request.form.get('image_link')
 
-        db.session.add(update_venue)
         db.session.commit()
 
         return redirect(url_for('venues.show_venue', venue_id=venue_id))
@@ -89,7 +88,7 @@ def update_venue_by_id(venue_id):
 @venue_route.route('/venues/<venue_id>/edit', methods=['GET'])
 def get_edit_venue_form(venue_id):
     venue_form = VenueForm()
-    venue = Venue()
+    venue = Venue.query.filter(Venue.id == venue_id)[0]
     return render_template('forms/edit_venue.html', form=venue_form, venue=venue)
 
 @venue_route.route('/venues/<venue_id>', methods=['DELETE'])
@@ -144,7 +143,7 @@ def get_vanue_by_id(venue_id, venue: dict):
     if all_shows:
         for show in all_shows:
             # Get artist information
-            artist = Artist.query.filter(Artist.id == show.artist_id)
+            artist = Artist.query.filter(Artist.id == show.artist_id)[0]
             show_detail = {
                 'artist_id': artist.id,
                 'artist_name': artist.name,

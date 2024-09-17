@@ -63,7 +63,7 @@ def search_artists():
 
 @artist_route.route('/artists/<artist_id>', methods=['GET'])
 def show_artist(artist_id):
-    artist = list(Artist.query.filter(Artist.id == artist_id))[0]
+    artist = Artist.query.filter(Artist.id == artist_id)[0]
     artist_detail = get_artist_detail(artist)
     return render_template('pages/show_artist.html', artist=artist_detail)
 
@@ -84,7 +84,6 @@ def update_artist(artist_id):
         artist.seeking_description = request.form.get('seeking_description')
         artist.image_link = request.form.get('image_link')
 
-        db.session.add(artist)
         db.session.commit()
         return redirect(url_for('artists.show_artist', artist_id=artist_id))
     except SQLAlchemyError as er:
@@ -95,7 +94,7 @@ def update_artist(artist_id):
 @artist_route.route('/artists/<artist_id>/edit', methods=['GET'])
 def edit_artist_form(artist_id):
     artist_form = ArtistForm()
-    artist = list(Artist.query.filter(Artist.id == artist_id))[0]
+    artist = Artist.query.filter(Artist.id == artist_id)[0]
     return render_template('forms/edit_artist.html',
                            form=artist_form, artist=artist)
 
@@ -111,7 +110,7 @@ def delete_artist(artist_id):
         db.session.rollback()
 
 
-def get_artist_detail(artist):
+def get_artist_detail(artist: Artist):
     past_shows = []
     upcoming_shows = []
 
@@ -120,7 +119,7 @@ def get_artist_detail(artist):
     if shows:
         for show in shows:
             # Get the venue that orgnize the show
-            venue = Venue.query.filter(Venue.id == show.id)[0]
+            venue = Venue.query.filter(Venue.id == show.venue_id)[0]
             show_detail = {
                 'venue_id': venue.id,
                 'venue_name': venue.name,
