@@ -3,11 +3,11 @@ from datetime import datetime
 from typing import List
 
 import ulid
-from flask import render_template, Blueprint, request, flash, redirect, url_for
+from flask import render_template, Blueprint, request, redirect, url_for
 from sqlalchemy.exc import SQLAlchemyError
 
-from form import VenueForm
-from models import Artist, db, Show, Venue
+from starter_code.form import VenueForm
+from starter_code.models import Artist, db, Show, Venue
 
 venue_route = Blueprint('venues', __name__)
 

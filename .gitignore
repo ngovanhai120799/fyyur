@@ -1,0 +1,10 @@
+.gitignore
+.git
+.gitattributes
+.vscode
+starter_code/.env
+.idea
+venv/*
+migrations/*
+__pycache__
+fyyur.iml
