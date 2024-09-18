@@ -6,7 +6,7 @@ import ulid
 from flask import render_template, Blueprint, request, redirect, url_for
 from sqlalchemy.exc import SQLAlchemyError
 
-from starter_code.form import VenueForm
+from starter_code.form import VenueForm, ArtistForm
 from starter_code.models import Artist, db, Show, Venue
 
 venue_route = Blueprint('venues', __name__)
@@ -20,28 +20,35 @@ def get_venues():
 
 @venue_route.route('/venues/create', methods=['GET'])
 def create_venue_form():
-    venue_form = VenueForm()
+    venue_form = VenueForm(request.form, meta= {'csrf': False})
     return render_template('forms/new_venue.html', form=venue_form)
 
 @venue_route.route('/venues/create', methods=['POST'])
 def ceate_venue():
-    new_venue = Venue()
-    new_venue.id = ulid.ulid()
-    new_venue.name = request.form.get('name')
-    new_venue.state = request.form.get('state')
-    new_venue.city = request.form.get('city')
-    new_venue.genres = request.form.getlist('genres')
-    new_venue.address = request.form.get('address')
-    new_venue.phone = request.form.get('phone')
-    new_venue.website = request.form.get('website')
-    new_venue.facebook_link = request.form.get('facebook_link')
-    new_venue.seeking_talent = bool(request.form.get('seeking_talent'))
-    new_venue.seeking_description = request.form.get('seeking_description')
-    new_venue.image_link = request.form.get('image_link')
+    venue_form = VenueForm(request.form, meta= {'csrf': False})
+    if venue_form.validate():
+        try:
+            new_venue = Venue()
+            new_venue.id = ulid.ulid()
+            new_venue.name = venue_form.name.data
+            new_venue.state = venue_form.state.data
+            new_venue.city = venue_form.city.data
+            new_venue.genres = venue_form.genres.data
+            new_venue.address = venue_form.address.data
+            new_venue.phone = venue_form.phone.data
+            new_venue.website = venue_form.website_link.data
+            new_venue.facebook_link = venue_form.facebook_link.data
+            new_venue.seeking_talent = venue_form.seeking_talent.data
+            new_venue.seeking_description = venue_form.seeking_description.data
+            new_venue.image_link = venue_form.image_link.data
 
-    db.session.add(new_venue)
-    db.session.commit()
-    return redirect(url_for('venues.get_venues'))
+            db.session.add(new_venue)
+            db.session.commit()
+            return redirect(url_for('venues.get_venues'))
+        except SQLAlchemyError as err:
+            db.session.rollback()
+    else:
+        return render_template('forms/new_venue.html', form=venue_form)
 
 
 @venue_route.route('/venues/search', methods=['POST'])
@@ -57,38 +64,42 @@ def search_venues():
 
 @venue_route.route('/venues/<venue_id>', methods=['GET'])
 def show_venue(venue_id):
-    venue = Venue.query.filter(Venue.id == venue_id)[0]
-    format_venue = get_vanue_by_id(venue_id, venue.toDict())
+    venue = Venue.query.get_or_404(venue_id)
+    format_venue = get_vanue_by_id(venue)
     return render_template('pages/show_venue.html', venue=format_venue)
 
 
 @venue_route.route('/venues/<venue_id>/edit', methods=['POST'])
 def update_venue_by_id(venue_id):
-    try:
-        update_venue = Venue.query.filter(Venue.id == venue_id)[0]
-        update_venue.name = request.form.get('name')
-        update_venue.state = request.form.get('state')
-        update_venue.city = request.form.get('city')
-        update_venue.genres = request.form.getlist('genres')
-        update_venue.address = request.form.get('address')
-        update_venue.phone = request.form.get('phone')
-        update_venue.website = request.form.get('website')
-        update_venue.facebook_link = request.form.get('facebook_link')
-        update_venue.seeking_talent = bool(request.form.get('seeking_talent'))
-        update_venue.seeking_description = request.form.get('seeking_description')
-        update_venue.image_link = request.form.get('image_link')
+    venue_form = VenueForm(request.form, meta= {'csrf': False})
+    if venue_form.validate():
+        try:
+            update_venue = Venue()
+            update_venue.name = venue_form.name.data
+            update_venue.state = venue_form.state.data
+            update_venue.city = venue_form.city.data
+            update_venue.genres = venue_form.genres.data
+            update_venue.address = venue_form.address.data
+            update_venue.phone = venue_form.phone.data
+            update_venue.website = venue_form.website_link.data
+            update_venue.facebook_link = venue_form.facebook_link.data
+            update_venue.seeking_talent = venue_form.seeking_talent.data
+            update_venue.seeking_description = venue_form.seeking_description.data
+            update_venue.image_link = venue_form.image_link.data
 
-        db.session.commit()
+            db.session.commit()
+            return redirect(url_for('venues.show_venue', venue_id=venue_id))
+        except SQLAlchemyError as er:
+            logging.info(f'Update venue fail: {er}')
+            db.session.rollback()
+    else:
+        return render_template('forms/edit_venue.html', form=venue_form)
 
-        return redirect(url_for('venues.show_venue', venue_id=venue_id))
-    except SQLAlchemyError as er:
-        logging.info(f'Update venue fail: {er}')
-        db.session.rollback()
 
 @venue_route.route('/venues/<venue_id>/edit', methods=['GET'])
 def get_edit_venue_form(venue_id):
-    venue_form = VenueForm()
-    venue = Venue.query.filter(Venue.id == venue_id)[0]
+    venue_form = VenueForm(request.form, meta= {'csrf': False})
+    venue = Venue.query.get_or_404(venue_id)
     return render_template('forms/edit_venue.html', form=venue_form, venue=venue)
 
 @venue_route.route('/venues/<venue_id>', methods=['DELETE'])
@@ -107,11 +118,10 @@ def get_all_venues(venues: List[Venue]):
     data: List[dict] = []
     for venue in venues:
         flag: bool = False
-        shows = Show.query.filter(Show.venue_id == venue.id)
         short_data = {
             'id': venue.id,
             'name': venue.name,
-            'num_upcoming_shows': len(list(shows))
+            'num_upcoming_shows': len(list(venue.shows))
         }
         show_item = {
             'city': venue.city,
@@ -134,29 +144,24 @@ def get_all_venues(venues: List[Venue]):
 
     return data
 
-
-def get_vanue_by_id(venue_id, venue: dict):
+def get_vanue_by_id(venue: Venue):
     past_shows = []
     upcoming_shows = []
     # Get all shows
-    all_shows = Show.query.filter(Show.venue_id == venue_id)
-    if all_shows:
-        for show in all_shows:
-            # Get artist information
-            artist = Artist.query.filter(Artist.id == show.artist_id)[0]
-            show_detail = {
-                'artist_id': artist.id,
-                'artist_name': artist.name,
-                'artist_image_link': artist.image_link,
-                'start_time': show.start_time
-            }
-            if show.start_time > datetime.today():
-                upcoming_shows.append(show_detail)
-            else:
-                past_shows.append(show_detail)
+    for show in venue.shows:
+        temp_show = {
+            'artist_id': show.artist.id,
+            'artist_name': show.artist.name,
+            'artist_image_link': show.artist.image_link,
+            'start_time': show.start_time.strftime('%m%d%Y, %H:%M')
+        }
+        if show.start_time > datetime.today():
+            upcoming_shows.append(temp_show)
+        else:
+            past_shows.append(temp_show)
 
     return {
-        **venue,
+        **venue.toDict(),
         'past_shows': past_shows,
         'upcoming_shows': upcoming_shows,
         'past_shows_count': len(past_shows),

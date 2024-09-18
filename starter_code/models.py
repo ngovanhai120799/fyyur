@@ -16,11 +16,13 @@ class Venue(db.Model):
     city = db.Column(db.String())
     state = db.Column(db.String())
     phone = db.Column(db.String())
+    address = db.Column(db.String())
     website = db.Column(db.String())
     facebook_link = db.Column(db.String())
     seeking_talent = db.Column(db.Boolean)
     seeking_description = db.Column(db.String())
     image_link = db.Column(db.String())
+    shows = db.relationship('Show', backref='venues', lazy='joined', cascade="all, delete")
 
     def toDict(self):
         return {c.key: getattr(self, c.key) for c in inspect(self).mapper.column_attrs}
@@ -33,12 +35,14 @@ class Artist(db.Model):
     city = db.Column(db.String())
     state = db.Column(db.String())
     phone = db.Column(db.String())
+    address = db.Column(db.String())
     image_link = db.Column(db.String())
     facebook_link = db.Column(db.String())
     genres = db.Column(MutableList.as_mutable(ARRAY(db.String())),server_default = "{}")
     website = db.Column(db.String())
     seeking_venue = db.Column(db.Boolean)
     seeking_description = db.Column(db.String())
+    shows = db.relationship('Show', backref='artists', lazy='joined', cascade="all, delete")
 
     def toDict(self):
         return {c.key: getattr(self, c.key) for c in inspect(self).mapper.column_attrs}

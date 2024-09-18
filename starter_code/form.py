@@ -23,16 +23,16 @@ class BaseForm(Form):
         regex = r'^\(?([0-9]{3})\)?([ .-]?)([0-9]{3})[ .-]?([0-9]{4})'
         return re.match(regex, phone)
 
-    def validate_phone(self, field: StringField):
+    def validate_phone(self, field):
         if not self._is_valid_phone(field.data):
             raise ValidationError('Invalid phone')
 
-    def validate_genres(self, field: SelectMultipleField):
+    def validate_genres(self, field):
         if not set(field.data).issubset(dict(Genres.choices()).keys()):
             raise ValidationError('Invalid genres')
 
-    def validate_state(self, field: SelectField):
-        if not set(field.data).issubset(dict(State.choices()).keys()):
+    def validate_state(self, field):
+        if field.data not in dict(State.choices()).keys():
             raise ValidationError('Invalid state')
 
 class VenueForm(BaseForm):

@@ -1,17 +1,17 @@
 from flask import Flask
 
-from config import (config, CONFIG_MODE)
-from models import (db, migrate)
+from starter_code.config import (config, CONFIG_MODE)
+from starter_code.models import (db, migrate)
 
 from starter_code.routes.venue import venue_route
 from starter_code.routes.artist import artist_route
 from starter_code.routes.show import show_route
 from starter_code.routes.index import home_route
 
-app = Flask(__name__)
 
 def create_app():
     """Application-factory pattern"""
+    app = Flask(__name__)
     app.config.from_object(config[CONFIG_MODE])
     db.init_app(app)
     migrate.init_app(app, db)
