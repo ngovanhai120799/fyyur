@@ -1,10 +1,10 @@
 .gitignore
 .git
-.gitattributes
 .vscode
 starter_code/.env
-.idea
+.idea/
 venv/*
 starter_code/migrations/*
 __pycache__
-fyyur.iml
+./fyyur.iml
+.DS_Store
