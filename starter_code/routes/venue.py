@@ -65,7 +65,7 @@ def search_venues():
 @venue_route.route('/venues/<venue_id>', methods=['GET'])
 def show_venue(venue_id):
     venue = Venue.query.get_or_404(venue_id)
-    format_venue = get_vanue_by_id(venue)
+    format_venue = get_venue_by_id(venue)
     return render_template('pages/show_venue.html', venue=format_venue)
 
 
@@ -74,7 +74,7 @@ def update_venue_by_id(venue_id):
     venue_form = VenueForm(request.form, meta= {'csrf': False})
     if venue_form.validate():
         try:
-            update_venue = Venue()
+            update_venue = Venue.query.get(venue_id)
             update_venue.name = venue_form.name.data
             update_venue.state = venue_form.state.data
             update_venue.city = venue_form.city.data
@@ -144,7 +144,7 @@ def get_all_venues(venues: List[Venue]):
 
     return data
 
-def get_vanue_by_id(venue: Venue):
+def get_venue_by_id(venue: Venue):
     past_shows = []
     upcoming_shows = []
     # Get all shows
@@ -155,7 +155,7 @@ def get_vanue_by_id(venue: Venue):
             'artist_image_link': show.artist.image_link,
             'start_time': show.start_time.strftime('%m%d%Y, %H:%M')
         }
-        if show.start_time > datetime.today():
+        if show.start_time > datetime.now():
             upcoming_shows.append(temp_show)
         else:
             past_shows.append(temp_show)

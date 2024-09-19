@@ -14,40 +14,43 @@ artist_route = Blueprint('artists', __name__)
 @artist_route.route('/artists', methods=['GET'])
 def get_artists():
     artists = Artist.query.all()
-    data = [artist.toDict() for artist in artists]
-    return render_template('pages/artists.html', artists=data)
+    return render_template('pages/artists.html', artists=artists)
 
 
 @artist_route.route('/artists/create', methods=['GET'])
 def create_artist_form():
-    artist_form = ArtistForm()
+    artist_form = ArtistForm(request.form, meta= {'csrf': False})
     artist = Artist()
     return render_template('forms/new_artist.html', form=artist_form, artist=artist)
 
 
 @artist_route.route('/artists/create', methods=['POST'])
 def create_artist():
-    try:
-        artist = Artist()
-        artist.id = ulid.ulid()
-        artist.name = request.form.get('name', '')
-        artist.genres = request.form.getlist('genres')
-        artist.city = request.form.get('city')
-        artist.state = request.form.get('state')
-        artist.phone = request.form.get('phone')
-        artist.website = request.form.get('website')
-        artist.facebook_link = request.form.get('facebook_link')
-        artist.seeking_venue = request.form.get('seeking_venue')
-        artist.seeking_description = request.form.get('seeking_description')
-        artist.image_link = request.form.get('image_link')
+    artist_form = ArtistForm(request.form, meta= {'csrf': False})
+    if artist_form.validate():
+        try:
+            artist = Artist()
+            artist.id = ulid.ulid()
+            artist.name = artist_form.name.data
+            artist.genres = artist_form.genres.data
+            artist.city = artist_form.city.data
+            artist.state = artist_form.state.data
+            artist.phone = artist_form.phone.data
+            artist.website = artist_form.website_link.data
+            artist.facebook_link = artist_form.facebook_link.data
+            artist.seeking_venue = artist_form.seeking_venue.data
+            artist.seeking_description = artist_form.seeking_description.data
+            artist.image_link = artist_form.image_link.data
 
-        db.session.add(artist)
-        db.session.commit()
+            db.session.add(artist)
+            db.session.commit()
 
-        return redirect(url_for('artists.get_artists'))
-    except SQLAlchemyError as er:
-        logging.info(f'Create artist fail: {er}')
-        db.session.rollback()
+            return redirect(url_for('artists.get_artists'))
+        except SQLAlchemyError as er:
+            logging.info(f'Create artist fail: {er}')
+            db.session.rollback()
+    else:
+        return render_template('forms/new_artist.html', form=artist_form)
 
 
 @artist_route.route('/artists/search', methods=['POST'])
@@ -63,38 +66,42 @@ def search_artists():
 
 @artist_route.route('/artists/<artist_id>', methods=['GET'])
 def show_artist(artist_id):
-    artist = Artist.query.filter(Artist.id == artist_id)[0]
+    artist = Artist.query.get_or_404(artist_id)
     artist_detail = get_artist_detail(artist)
     return render_template('pages/show_artist.html', artist=artist_detail)
 
 
 @artist_route.route('/artists/<artist_id>/edit', methods=['POST'])
 def update_artist(artist_id):
-    try:
-        artist = list(Artist.query.filter(Artist.id == artist_id))[0]
+    artist_form = ArtistForm(request.form, meta= {'csrf': False})
+    if artist_form.validate():
+        try:
+            artist = Artist.query.get_or_404(artist_id)
 
-        artist.name = request.form.get('name', '')
-        artist.genres = request.form.getlist('genres')
-        artist.city = request.form.get('city')
-        artist.state = request.form.get('state')
-        artist.phone = request.form.get('phone')
-        artist.website = request.form.get('website')
-        artist.facebook_link = request.form.get('facebook_link')
-        artist.seeking_venue = request.form.get('seeking_venue')
-        artist.seeking_description = request.form.get('seeking_description')
-        artist.image_link = request.form.get('image_link')
+            artist.name = artist_form.name.data
+            artist.genres = artist_form.genres.data
+            artist.city = artist_form.city.data
+            artist.state = artist_form.state.data
+            artist.phone = artist_form.phone.data
+            artist.website = artist_form.website_link.data
+            artist.facebook_link = artist_form.facebook_link.data
+            artist.seeking_venue = artist_form.seeking_venue.data
+            artist.seeking_description = artist_form.seeking_description.data
+            artist.image_link = artist_form.image_link.data
 
-        db.session.commit()
-        return redirect(url_for('artists.show_artist', artist_id=artist_id))
-    except SQLAlchemyError as er:
-        logging.info(f'Update artist fail: {er}')
-        db.session.rollback()
+            db.session.commit()
+            return redirect(url_for('artists.show_artist', artist_id=artist_id))
+        except SQLAlchemyError as er:
+            logging.info(f'Update artist fail: {er}')
+            db.session.rollback()
+    else:
+        return render_template('forms/edit_artist.html', form=artist_form)
 
 
 @artist_route.route('/artists/<artist_id>/edit', methods=['GET'])
 def edit_artist_form(artist_id):
-    artist_form = ArtistForm()
-    artist = Artist.query.filter(Artist.id == artist_id)[0]
+    artist_form = ArtistForm(request.form, meta= {'csrf': False})
+    artist = Artist.query.get_or_404(artist_id)
     return render_template('forms/edit_artist.html',
                            form=artist_form, artist=artist)
 
@@ -102,7 +109,7 @@ def edit_artist_form(artist_id):
 @artist_route.route('/artists/<artist_id>', methods=['DELETE'])
 def delete_artist(artist_id):
     try:
-        artist = list(Artist.query.filter(Artist.id == artist_id))[0]
+        artist = Artist.query.get_or_404(artist_id)
         db.session.delete(artist)
         db.session.commit()
     except SQLAlchemyError as er:
@@ -114,22 +121,18 @@ def get_artist_detail(artist: Artist):
     past_shows = []
     upcoming_shows = []
 
-    # Get all shows of the artists
-    shows = Show.query.filter(Show.artist_id == artist.id)
-    if shows:
-        for show in shows:
-            # Get the venue that orgnize the show
-            venue = Venue.query.filter(Venue.id == show.venue_id)[0]
-            show_detail = {
-                'venue_id': venue.id,
-                'venue_name': venue.name,
-                'venue_image_link': venue.image_link,
-                'start_time': show.start_time
-            }
-            if show.start_time > datetime.today():
-                upcoming_shows.append(show_detail)
-            else:
-                past_shows.append(show_detail)
+    for show in artist.shows:
+        # Get the venue that orgnize the show
+        show_detail = {
+            'venue_id': show.venue.id,
+            'venue_name': show.venue.name,
+            'venue_image_link': show.venue.image_link,
+            'start_time': show.start_time.strftime('%m%d%y, %H:%M')
+        }
+        if show.start_time > datetime.now():
+            upcoming_shows.append(show_detail)
+        else:
+            past_shows.append(show_detail)
 
     return {
         **artist.toDict(),
